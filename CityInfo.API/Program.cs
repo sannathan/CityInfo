@@ -11,7 +11,7 @@ builder.Services.AddControllers(
     }
     )
     .AddNewtonsoftJson()
-    .AddXmlDataContractSerializerFormatters()
+    .AddXmlDataContractSerializerFormatters();
 
 //builder.Services.AddProblemDetails(options =>
 //{
