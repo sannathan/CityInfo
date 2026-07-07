@@ -1,8 +1,18 @@
 using Microsoft.AspNetCore.StaticFiles;
+using Serilog;
+
+
+Log.Logger = new LoggerConfiguration()
+    .MinimumLevel.Debug()
+    .WriteTo.Console()
+    .WriteTo.File("logs/cityinfo.txt", rollingInterval: RollingInterval.Day)
+    .CreateLogger();
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+//builder.Logging.ClearProviders();
+//builder.Logging.AddConsole();
+builder.Host.UseSerilog();
 
 builder.Services.AddControllers(
     options =>
@@ -13,6 +23,7 @@ builder.Services.AddControllers(
     .AddNewtonsoftJson()
     .AddXmlDataContractSerializerFormatters();
 
+builder.Services.AddProblemDetails();
 //builder.Services.AddProblemDetails(options =>
 //{
 //    options.CustomizeProblemDetails = ctx =>
@@ -28,6 +39,11 @@ builder.Services.AddSingleton<FileExtensionContentTypeProvider>();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
+if (!app.Environment.IsDevelopment())
+{
+    app.UseExceptionHandler();
+}
+
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
