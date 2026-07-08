@@ -1,36 +1,36 @@
 ﻿using CityInfo.API.Models;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.JsonPatch;
+using CityInfo.API.Services;
+using Microsoft.AspNetCore.Http; 
+using Microsoft.AspNetCore.JsonPatch; 
 using Microsoft.AspNetCore.Mvc;
-
-namespace CityInfo.API.Controllers
-{
-    [Route("api/cities/{cityId}/pointsofinterest")]
-    [ApiController]
-    public class PointsOfInterestController : ControllerBase
-    {
+using Microsoft.AspNetCore.Razor.TagHelpers;
+namespace CityInfo.API.Controllers { [Route("api/cities/{cityId}/pointsofinterest")] [ApiController] public class PointsOfInterestController : ControllerBase 
+    { 
         private readonly ILogger<PointsOfInterestController> _logger;
+        private readonly LocalMailService _mailService; 
 
-        public PointsOfInterestController(ILogger<PointsOfInterestController> logger)
+        public PointsOfInterestController(ILogger<PointsOfInterestController> logger, LocalMailService mailService)
         {
             _logger = logger;
+            _mailService = mailService;
         }
 
         [HttpGet]
         public ActionResult<IEnumerable<PointOfInterestDto>> GetPointsOfInterest(int cityId)
         {
-            throw new Exception("Exception sample");
             try {
-            var city = CitiesDataStore.Current.Cities.FirstOrDefault(c => c.Id == cityId);
+                var city = CitiesDataStore.Current.Cities.FirstOrDefault(c => c.Id == cityId);
 
-            if(city == null)
-            {
-                _logger.LogInformation($"City with id {cityId} wasn't found when accessing points of interest.");
-                return NotFound();
-            }
+                if(city == null)
+                {
+                    _logger.LogInformation($"City with id {cityId} wasn't found when accessing points of interest.");
+                    return NotFound();
+                }
 
-            return Ok(city.PointsOfInterest);
-            } catch (Exception ex){
+                return Ok(city.PointsOfInterest);
+
+            } 
+            catch (Exception ex){
                 _logger.LogCritical($"Exception while getting points of interest for city with id {cityId}.", ex);
                 return StatusCode(500, "A problem happened while handling your request.");
             }
@@ -170,6 +170,8 @@ namespace CityInfo.API.Controllers
             }
 
             city.PointsOfInterest.Remove(pointOfInterestFromStore);
+
+            _mailService.Send("Point of interest deleted.", $"Point of interest {pointOfInterestFromStore.Name} with id {pointOfInterestId}");
             return NoContent();
         }
     }
